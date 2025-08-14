@@ -8,9 +8,17 @@ import asyncio
 import os
 from datetime import datetime
 import aiohttp
+import logging
+
 
 from tapo import ApiClient
 
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] %(levelname)s: %(message)s',
+)
 
 async def main():
 
@@ -34,23 +42,18 @@ async def main():
     while True:
         success = await check_internet()
         if success:
-            print(f"[{datetime.now()}] Internet OK")
+            logging.info("Internet OK")
             failure_count = 0
         else:
             failure_count += 1
-            print(f"[{datetime.now()}] Internet DOWN (fail {failure_count})")
+            logging.warning(f"Internet DOWN (fail {failure_count})")
             if failure_count >= 5:
-                print(f"[{datetime.now()}] Restarting plug due to 5 consecutive failures...")
+                logging.error("Restarting plug due to 5 consecutive failures...")
                 await device.off()
                 await asyncio.sleep(2)
                 await device.on()
                 failure_count = 0
-                await asyncio.sleep(60)
         await asyncio.sleep(60)
-
-
-def get_quarter_start_month(today: datetime) -> int:
-    return 3 * ((today.month - 1) // 3) + 1
 
 
 if __name__ == "__main__":
